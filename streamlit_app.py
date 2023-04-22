@@ -81,16 +81,19 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
     return image
 
   def generate_new_images_based_on_feedback(selected_images):
-    # Generate new images using the selected images as input to StyleGAN2-FFHQ
-    num_images = 10
-    latent_vectors = truncation * np.random.randn(num_images, stylegan2.input_shape[1]).astype(np.float32)
-    selected_images = tf.cast(selected_images, dtype=tf.float32) / 255.0
-    generated_images = stylegan2(latent_vectors, selected_images)['default']
+    # Convert the selected images to an array
+    selected_images = np.array(selected_images)
+
+    # Generate new images based on the selected images using StyleGAN2-FFHQ
+    latent_vectors = stylegan2(tf.convert_to_tensor(selected_images), training=False)['mapping']
+    new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
+    new_images = stylegan2(new_latent_vectors, training=False)['default']
 
     # Convert the generated images back to the [0, 255] range
-    generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
-    generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
-    generated_images = [apply_improvements(img, apply_lighting=True, apply_sym
+    new_images = tf.clip_by_value(new_images, 0, 1) * 255
+    new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
+
+    return new_images
 
 
   def select_and_save_image(images):
