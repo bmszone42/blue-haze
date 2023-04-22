@@ -51,7 +51,8 @@ def remove_stray_hairs(image):
 
 # Load StyleGAN2 from TensorFlow Hub
 #stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq-config-f/1")
-progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
+#progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
+progan = hub.load('https://tfhub.dev/deepmind/biggan-512/2').signatures['default']
 
 def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
     generated_images = []
