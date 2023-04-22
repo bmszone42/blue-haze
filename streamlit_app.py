@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 from PIL import Image
+from keras.models import load_model
 
 st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
                    page_icon=":camera_flash:",
@@ -61,26 +62,38 @@ import numpy as np
 import streamlit as st
 from tensorflow.keras.models import load_model
 
-# Load ProGAN from Keras model
-progan = load_model('progan.h5')
+# # Load ProGAN from Keras model
+# progan = load_model('progan.h5')
 
-def generate_images(image, num_images=10, truncation=0.5, seed=None):
-    if seed is None:
-        seed = np.random.randint(1000000, size=num_images)
-    else:
-        np.random.seed(seed)
-        seed = np.random.randint(1000000, size=num_images)
+# def generate_images(image, num_images=10, truncation=0.5, seed=None):
+#     if seed is None:
+#         seed = np.random.randint(1000000, size=num_images)
+#     else:
+#         np.random.seed(seed)
+#         seed = np.random.randint(1000000, size=num_images)
     
-    # Generate images using ProGAN
-    latent_vectors = truncation * np.random.randn(num_images, 512).astype(np.float32)
-    generated_images = progan.predict(latent_vectors)
+#     # Generate images using ProGAN
+#     latent_vectors = truncation * np.random.randn(num_images, 512).astype(np.float32)
+#     generated_images = progan.predict(latent_vectors)
+
+#     # Convert the generated images back to the [0, 255] range
+#     generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
+#     generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
+
+#     return generated_images
+
+# Load the DCGAN model
+dcgan = load_model('dcgan.h5')
+
+# Generate new images using the DCGAN model
+def generate_images(num_images=10, latent_dim=100):
+    latent_vectors = np.random.normal(size=(num_images, latent_dim))
+    generated_images = dcgan.predict(latent_vectors)
 
     # Convert the generated images back to the [0, 255] range
-    generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
-    generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
+    generated_images = ((generated_images + 1) * 127.5).astype(np.uint8)
 
     return generated_images
-
 
 
 def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
@@ -94,20 +107,20 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
         image = remove_stray_hairs(image)
     return image
 
-def generate_new_images_based_on_feedback(selected_images):
-    # Convert the selected images to an array
-    selected_images = np.array(selected_images)
+# def generate_new_images_based_on_feedback(selected_images):
+#     # Convert the selected images to an array
+#     selected_images = np.array(selected_images)
 
-    # Generate new images based on the selected images using ProGAN
-    latent_vectors = progan(selected_images)['z']
-    new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
-    new_images = progan(new_latent_vectors)['default']
+#     # Generate new images based on the selected images using ProGAN
+#     latent_vectors = progan(selected_images)['z']
+#     new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
+#     new_images = progan(new_latent_vectors)['default']
 
-    # Convert the generated images back to the [0, 255] range
-    new_images = tf.clip_by_value(new_images, 0, 1) * 255
-    new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
+#     # Convert the generated images back to the [0, 255] range
+#     new_images = tf.clip_by_value(new_images, 0, 1) * 255
+#     new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
 
-    return new_images
+#     return new_images
 
 
 def select_and_save_image(images):
