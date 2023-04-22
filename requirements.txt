@@ -2,5 +2,5 @@ numpy
 opencv-python-headless
 tensorflow
 tensorflow_hub
-PIL
+Pillow
 streamlit
