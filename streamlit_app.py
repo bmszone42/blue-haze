@@ -69,7 +69,7 @@ def generate_images(image, num_images=10, selected_enhancements=None):
         seed = tf.random.normal([1, 512])
 
         # Generate an image using the GAN and the seed
-        gan_output = progan(seed, truncation_psi=0.5)
+        gan_output = progan(seed)['default']
 
         # Convert the generated image back to the [0, 255] range
         generated_image = (gan_output + 1) / 2 * 255
