@@ -80,35 +80,35 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
         image = remove_stray_hairs(image)
     return image
 
-  def generate_new_images_based_on_feedback(selected_images):
-    # Convert the selected images to an array
-    selected_images = np.array(selected_images)
+def generate_new_images_based_on_feedback(selected_images):
+  # Convert the selected images to an array
+  selected_images = np.array(selected_images)
 
-    # Generate new images based on the selected images using StyleGAN2-FFHQ
-    latent_vectors = stylegan2(tf.convert_to_tensor(selected_images), training=False)['mapping']
-    new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
-    new_images = stylegan2(new_latent_vectors, training=False)['default']
+  # Generate new images based on the selected images using StyleGAN2-FFHQ
+  latent_vectors = stylegan2(tf.convert_to_tensor(selected_images), training=False)['mapping']
+  new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
+  new_images = stylegan2(new_latent_vectors, training=False)['default']
 
-    # Convert the generated images back to the [0, 255] range
-    new_images = tf.clip_by_value(new_images, 0, 1) * 255
-    new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
+  # Convert the generated images back to the [0, 255] range
+  new_images = tf.clip_by_value(new_images, 0, 1) * 255
+  new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
 
-    return new_images
+  return new_images
 
 
-  def select_and_save_image(images):
-    # Display the generated images
-    for i, img in enumerate(images):
-        st.image(img, caption=f"Generated Image {i+1}")
+def select_and_save_image(images):
+  # Display the generated images
+  for i, img in enumerate(images):
+      st.image(img, caption=f"Generated Image {i+1}")
 
-    # Allow the user to select their favorite image
-    selected_index = st.selectbox("Select your favorite image:", range(len(images)))
+  # Allow the user to select their favorite image
+  selected_index = st.selectbox("Select your favorite image:", range(len(images)))
 
-    # Save the selected image locally as a PNG file
-    selected_image = Image.fromarray(images[selected_index])
-    selected_image.save("favorite_image.png")
+  # Save the selected image locally as a PNG file
+  selected_image = Image.fromarray(images[selected_index])
+  selected_image.save("favorite_image.png")
 
-    st.success("Image saved successfully!")
+  st.success("Image saved successfully!")
 
 # App Interface
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"]) # Set maximum upload size to 10 MB
