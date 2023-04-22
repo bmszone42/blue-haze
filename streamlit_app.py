@@ -5,39 +5,45 @@ import tensorflow as tf
 import tensorflow_hub as hub
 from PIL import Image
 
-# Add CSS animation style to Streamlit
-st.write("""
-    <style>
-        .title-animation {
-            font-size: 2rem;
-            position: relative;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        
-        .title-text {
-            display: inline-block;
-            padding: 0 2rem;
-            animation: slide 5s linear infinite;
-        }
-        
-        @keyframes slide {
-            0% {
-                transform: translateX(100%);
-            }
-            100% {
-                transform: translateX(-100%);
-            }
-        }
-    </style>
-""", unsafe_allow_html=True)
+st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
+                   page_icon=":camera_flash:",
+                   layout="wide")
+st.markdown("<h1 style='text-align: center; color: #b89b7b'>PicPerfector: Ultimate Photo Transformation</h1>", 
+            unsafe_allow_html=True)
 
-# App Interface
-st.markdown("""
-    <h1 class="title-animation">
-        📸 <span class="title-text">PicPerfector: Ultimate Photo Transformation</span> 🖼️
-    </h1>
-""", unsafe_allow_html=True)
+# # Add CSS animation style to Streamlit
+# st.write("""
+#     <style>
+#         .title-animation {
+#             font-size: 2rem;
+#             position: relative;
+#             overflow: hidden;
+#             white-space: nowrap;
+#         }
+        
+#         .title-text {
+#             display: inline-block;
+#             padding: 0 2rem;
+#             animation: slide 5s linear infinite;
+#         }
+        
+#         @keyframes slide {
+#             0% {
+#                 transform: translateX(100%);
+#             }
+#             100% {
+#                 transform: translateX(-100%);
+#             }
+#         }
+#     </style>
+# """, unsafe_allow_html=True)
+
+# # App Interface
+# st.markdown("""
+#     <h1 class="title-animation">
+#         📸 <span class="title-text">PicPerfector: Ultimate Photo Transformation</span> 🖼️
+#     </h1>
+# """, unsafe_allow_html=True)
 
 def improve_lighting(image):
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
@@ -127,11 +133,7 @@ def generate_new_images_based_on_feedback(selected_images):
     return new_images
 
 # App Interface
-st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
-                   page_icon=":camera_flash:",
-                   layout="wide")
-st.markdown("<h1 style='text-align: center; color: #b89b7b'>PicPerfector: Ultimate Photo Transformation</h1>", 
-            unsafe_allow_html=True)
+
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"], max_upload_size=10*1024*1024) # Set maximum upload size to 10 MB
 
 if uploaded_file is not None:
