@@ -50,7 +50,8 @@ def remove_stray_hairs(image):
     return result
 
 # Load StyleGAN2-FFHQ from TensorFlow Hub
-stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq/1")
+#stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq/1")
+stylegan2 = hub.Module("https://tfhub.dev/google/stylegan2-ffhq/1")
 
 def generate_images(image, num_images=10, truncation=0.5, seed=None):
     if seed is None:
