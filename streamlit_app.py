@@ -163,9 +163,11 @@ def main():
             if remove_hairs:
                 selected_enhancements.append("remove_stray_hairs")
 
+            num_images = st.slider("Number of images to generate", 1, 20, 12)
+
             enhanced_images = []
             if st.button("Generate Enhanced Images"):
-                for i in range(12):
+                for i in range(num_images):
                     enhanced_image = apply_improvements(np.array(input_image), 
                                                          apply_lighting=enhance_lighting, 
                                                          apply_symmetry=enhance_symmetry, 
@@ -176,18 +178,17 @@ def main():
                     Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
                     st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
 
-                # Create a collage of the generated images
-                collage = create_collage([Image.fromarray(img) for img in enhanced_images])
-                st.image(collage, caption='Generated Images Collage')
+            selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(num_images)], default=[])
 
-                # Allow the user to select and save individual images
-                for i, img in enumerate(enhanced_images):
-                    if st.button(f"Save Enhanced Image {i+1}"):
-                        file = st.file_uploader(f"Save Enhanced Image {i+1}", type=["png", "jpg", "jpeg"], key=i)
-                        if file is not None:
-                            img = Image.fromarray(img)
-                            img.save(file.name)
-                            st.success("Image saved successfully!")
+            if st.button("Generate New Images Based on Voting"):
+                if len(selected_indices) > 0:
+                    selected_images = [enhanced_images[i] for i in selected_indices]
+                    new_images = generate_new_images_based_on_feedback(selected_images)
+                    collage = create_collage(new_images)
+                    st.image(collage, caption='Enhanced Images Collage')
+                else:
+                    st.warning("Please upvote at least one image before generating new images")
+
 
 if __name__ == '__main__':
     main()
