@@ -1,6 +1,7 @@
 numpy
 opencv-python-headless
-tensorflow
+tensorflow==2.5.0
 tensorflow_hub
 Pillow
 streamlit
+protobuf==3.20.3
