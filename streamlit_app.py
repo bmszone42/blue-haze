@@ -134,14 +134,14 @@ def generate_new_images_based_on_feedback(selected_images):
 
 # App Interface
 
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"], max_upload_size=10*1024*1024) # Set maximum upload size to 10 MB
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"]) # Set maximum upload size to 10 MB
 
 if uploaded_file is not None:
     # Set maximum upload size to 10 MB
     uploaded_file.seek(0)
-    max_size = 10 * 1024 * 1024
+    max_size = 3 * 1024 * 1024
     if len(uploaded_file.getvalue()) > max_size:
-        st.error(f"Please upload an image smaller than {max_size/1024/1024} MB.")
+        st.error(f"Please upload an image smaller than {max_size/512/512} MB.")
     else:
         input_image = Image.open(uploaded_file).convert("RGB")
         
