@@ -54,6 +54,9 @@ progan = hub.load("https://tfhub.dev/google/progan-128/1")
 #stylegan2 = hub.Module("https://tfhub.dev/google/stylegan2-ffhq/1")
 
 
+# Load ProGAN from TensorFlow Hub
+progan = hub.load("https://tfhub.dev/google/progan-128/1")
+
 def generate_images(image, num_images=10, truncation=0.5, seed=None):
     if seed is None:
         seed = np.random.randint(1000000, size=num_images)
@@ -61,8 +64,8 @@ def generate_images(image, num_images=10, truncation=0.5, seed=None):
         np.random.seed(seed)
         seed = np.random.randint(1000000, size=num_images)
     
-    # Generate images using StyleGAN2-FFHQ
-    latent_vectors = truncation * np.random.randn(num_images, stylegan2.input_shape[1]).astype(np.float32)
+    # Generate images using ProGAN
+    latent_vectors = truncation * np.random.randn(num_images, progan.input_shape[1]).astype(np.float32)
     generated_images = progan(latent_vectors)['default']
 
     # Convert the generated images back to the [0, 255] range
@@ -83,19 +86,19 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
     return image
 
 def generate_new_images_based_on_feedback(selected_images):
-  # Convert the selected images to an array
-  selected_images = np.array(selected_images)
+    # Convert the selected images to an array
+    selected_images = np.array(selected_images)
 
-  # Generate new images based on the selected images using StyleGAN2-FFHQ
-  latent_vectors = stylegan2(tf.convert_to_tensor(selected_images), training=False)['mapping']
-  new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
-  new_images = stylegan2(new_latent_vectors, training=False)['default']
+    # Generate new images based on the selected images using ProGAN
+    latent_vectors = progan(selected_images)['z']
+    new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
+    new_images = progan(new_latent_vectors)['default']
 
-  # Convert the generated images back to the [0, 255] range
-  new_images = tf.clip_by_value(new_images, 0, 1) * 255
-  new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
+    # Convert the generated images back to the [0, 255] range
+    new_images = tf.clip_by_value(new_images, 0, 1) * 255
+    new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
 
-  return new_images
+    return new_images
 
 
 def select_and_save_image(images):
@@ -152,12 +155,10 @@ if uploaded_file is not None:
                 img = apply_improvements(img, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
                 st.image(img, caption=f"Enhanced Image {i+1}")
 
-
-
         image_indices = [i for i in range(len(enhanced_images))]
         selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in image_indices], default=[])
 
-        if st.button("Generate New Images"):
+        if st.button("Generate New Images Based on Voting"):
             if len(selected_indices) > 0:
                 selected_images = [enhanced_images[i] for i in selected_indices]
                 new_images = generate_new_images_based_on_feedback(selected_images)
