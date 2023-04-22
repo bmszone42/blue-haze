@@ -11,6 +11,8 @@ st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
 st.markdown("<h1 style='text-align: center; color: #b89b7b'>PicPerfector: Ultimate Photo Transformation</h1>", 
             unsafe_allow_html=True)
 
+selected_enhancements = []
+
 def improve_lighting(image):
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
     l, a, b = cv2.split(lab)
@@ -116,7 +118,7 @@ if uploaded_file is not None:
         adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
         remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
 
-        selected_enhancements = []
+        
         if enhance_lighting:
             selected_enhancements.append("improve_lighting")
         if enhance_symmetry:
