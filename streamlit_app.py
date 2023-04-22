@@ -115,7 +115,7 @@ if uploaded_file is not None:
         
         st.sidebar.info("Please select the enhancements to apply to the original image")
         
-        st.sidebar.help("Hover over each enhancement to see a brief description")
+        #st.sidebar.help("Hover over each enhancement to see a brief description")
 
         enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
         enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
