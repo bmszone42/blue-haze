@@ -114,6 +114,7 @@ if uploaded_file is not None:
         st.image(input_image, caption="Original Image")
         
         st.sidebar.info("Please select the enhancements to apply to the original image")
+        
         st.sidebar.help("Hover over each enhancement to see a brief description")
 
         enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
