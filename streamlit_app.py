@@ -92,45 +92,45 @@ if uploaded_file is not None:
     else:
         input_image = Image.open(uploaded_file).convert("RGB")
         
-            st.image(input_image, caption="Original Image")
-    
-    st.sidebar.info("Please select the enhancements to apply to the original image")
-    
-    #st.sidebar.help("Hover over each enhancement to see a brief description")
+        st.image(input_image, caption="Original Image")
+        
+        st.sidebar.info("Please select the enhancements to apply to the original image")
+        
+        #st.sidebar.help("Hover over each enhancement to see a brief description")
 
-    enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
-    enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
-    adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
-    remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
+        enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
+        enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
+        adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
+        remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
 
-    
-    if enhance_lighting:
-        selected_enhancements.append("improve_lighting")
-    if enhance_symmetry:
-        selected_enhancements.append("enhance_symmetry")
-    if adjust_bg_color:
-        selected_enhancements.append("adjust_background_color")
-    if remove_hairs:
-        selected_enhancements.append("remove_stray_hairs")
+        
+        if enhance_lighting:
+            selected_enhancements.append("improve_lighting")
+        if enhance_symmetry:
+            selected_enhancements.append("enhance_symmetry")
+        if adjust_bg_color:
+            selected_enhancements.append("adjust_background_color")
+        if remove_hairs:
+            selected_enhancements.append("remove_stray_hairs")
 
-    enhanced_images = []
-    if st.button("Generate Enhanced Images"):
-        for i in range(12):
-            enhanced_image = apply_improvements(np.array(input_image), 
-                                                 apply_lighting=enhance_lighting, 
-                                                 apply_symmetry=enhance_symmetry, 
-                                                 apply_bg_color=adjust_bg_color, 
-                                                 apply_hair_removal=remove_hairs)
-            enhanced_images.append(enhanced_image)
-            # Save the enhanced image to disk
-            Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
-            st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
+        enhanced_images = []
+        if st.button("Generate Enhanced Images"):
+            for i in range(12):
+                enhanced_image = apply_improvements(np.array(input_image), 
+                                                     apply_lighting=enhance_lighting, 
+                                                     apply_symmetry=enhance_symmetry, 
+                                                     apply_bg_color=adjust_bg_color, 
+                                                     apply_hair_removal=remove_hairs)
+                enhanced_images.append(enhanced_image)
+                # Save the enhanced image to disk
+                Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
+                st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
 
-    selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
+        selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
 
-    if st.button("Generate New Images Based on Voting"):
-        if len(selected_indices) > 0:
-            selected_images = [enhanced_images[i] for i in selected_indices]
-            new_images = generate_new_images_based_on_feedback(selected_images)
-            collage = create_collage()
-            st.image(collage, caption='Enhanced Images Collage')
+        if st.button("Generate New Images Based on Voting"):
+            if len(selected_indices) > 0:
+                selected_images = [enhanced_images[i] for i in selected_indices]
+                new_images = generate_new_images_based_on_feedback(selected_images)
+                collage = create_collage()
+                st.image(collage, caption='Enhanced Images Collage')
