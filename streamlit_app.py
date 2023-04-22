@@ -63,9 +63,9 @@ def generate_images(image, num_images=10, truncation=0.5, seed=None):
         np.random.seed(seed)
         seed = np.random.randint(1000000, size=num_images)
     
-    # Generate images using ProGAN
-    latent_vectors = truncation * np.random.randn(num_images, progan.get_input_shape_at(0)[-1]).astype(np.float32)
-    generated_images = progan.generator(latent_vectors)['default']
+    # Generate images using ProGAN-128
+    latent_vectors = truncation * np.random.randn(num_images, progan.input_shape[1]).astype(np.float32)
+    generated_images = progan(latent_vectors)['default']
 
     # Convert the generated images back to the [0, 255] range
     generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
