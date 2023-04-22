@@ -53,6 +53,9 @@ def remove_stray_hairs(image):
 progan = hub.load("https://tfhub.dev/google/progan-128/1")
 #stylegan2 = hub.Module("https://tfhub.dev/google/stylegan2-ffhq/1")
 
+# Load ProGAN from TensorFlow Hub
+progan = hub.load("https://tfhub.dev/google/progan-128/1")
+
 def generate_images(image, num_images=10, truncation=0.5, seed=None):
     if seed is None:
         seed = np.random.randint(1000000, size=num_images)
@@ -61,8 +64,8 @@ def generate_images(image, num_images=10, truncation=0.5, seed=None):
         seed = np.random.randint(1000000, size=num_images)
     
     # Generate images using ProGAN
-    latent_vectors = truncation * np.random.randn(num_images, 512).astype(np.float32)
-    generated_images = progan(latent_vectors)['default']
+    latent_vectors = truncation * np.random.randn(num_images, progan.get_input_shape_at(0)[-1]).astype(np.float32)
+    generated_images = progan.generator(latent_vectors)['default']
 
     # Convert the generated images back to the [0, 255] range
     generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
