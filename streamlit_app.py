@@ -56,6 +56,14 @@ progan = hub.load("https://tfhub.dev/google/progan-128/1")
 # Load ProGAN from TensorFlow Hub
 progan = hub.load("https://tfhub.dev/google/progan-128/1")
 
+import tensorflow as tf
+import numpy as np
+import streamlit as st
+from tensorflow.keras.models import load_model
+
+# Load ProGAN from Keras model
+progan = load_model('progan.h5')
+
 def generate_images(image, num_images=10, truncation=0.5, seed=None):
     if seed is None:
         seed = np.random.randint(1000000, size=num_images)
@@ -64,8 +72,8 @@ def generate_images(image, num_images=10, truncation=0.5, seed=None):
         seed = np.random.randint(1000000, size=num_images)
     
     # Generate images using ProGAN
-    latent_vectors = truncation * np.random.randn(num_images, progan.signatures['default'].inputs[0].shape[1]).astype(np.float32)
-    generated_images = progan(latent_vectors)['default']
+    latent_vectors = truncation * np.random.randn(num_images, 512).astype(np.float32)
+    generated_images = progan.predict(latent_vectors)
 
     # Convert the generated images back to the [0, 255] range
     generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
