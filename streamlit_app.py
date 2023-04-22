@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 from PIL import Image
-from keras.models import load_model
+
 
 st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
                    page_icon=":camera_flash:",
@@ -50,51 +50,12 @@ def remove_stray_hairs(image):
     result = cv2.addWeighted(image, 1, cv2.cvtColor(opening, cv2.COLOR_GRAY2BGR), -1, 0)
     return result
 
-# Load StyleGAN2-FFHQ from TensorFlow Hub
-progan = hub.load("https://tfhub.dev/google/progan-128/1")
-#stylegan2 = hub.Module("https://tfhub.dev/google/stylegan2-ffhq/1")
-
-# Load ProGAN from TensorFlow Hub
-progan = hub.load("https://tfhub.dev/google/progan-128/1")
-
-import tensorflow as tf
-import numpy as np
-import streamlit as st
-from tensorflow.keras.models import load_model
-
-# # Load ProGAN from Keras model
-# progan = load_model('progan.h5')
-
-# def generate_images(image, num_images=10, truncation=0.5, seed=None):
-#     if seed is None:
-#         seed = np.random.randint(1000000, size=num_images)
-#     else:
-#         np.random.seed(seed)
-#         seed = np.random.randint(1000000, size=num_images)
-    
-#     # Generate images using ProGAN
-#     latent_vectors = truncation * np.random.randn(num_images, 512).astype(np.float32)
-#     generated_images = progan.predict(latent_vectors)
-
-#     # Convert the generated images back to the [0, 255] range
-#     generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
-#     generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
-
-#     return generated_images
-
-# Load the DCGAN model
-dcgan = load_model('dcgan.h5')
-
-# Generate new images using the DCGAN model
-def generate_images(num_images=10, latent_dim=100):
-    latent_vectors = np.random.normal(size=(num_images, latent_dim))
-    generated_images = dcgan.predict(latent_vectors)
-
-    # Convert the generated images back to the [0, 255] range
-    generated_images = ((generated_images + 1) * 127.5).astype(np.uint8)
-
-    return generated_images
-
+def create_collage():
+    images = [Image.open(f'image{i}_enhanced.png') for i in range(12)]  # Load the enhanced images
+    images = [image.resize((200, 200)) for image in images]  # Resize the images
+    rows = [np.concatenate(images[i:i+4], axis=1) for i in range(0, 12, 4)]  # Concatenate the images into rows
+    collage = np.concatenate(rows, axis=0)  # Concatenate the rows into a single image
+    return Image.fromarray(collage)
 
 def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
     if apply_lighting:
@@ -106,22 +67,6 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
     if apply_hair_removal:
         image = remove_stray_hairs(image)
     return image
-
-# def generate_new_images_based_on_feedback(selected_images):
-#     # Convert the selected images to an array
-#     selected_images = np.array(selected_images)
-
-#     # Generate new images based on the selected images using ProGAN
-#     latent_vectors = progan(selected_images)['z']
-#     new_latent_vectors = np.random.normal(loc=latent_vectors, scale=0.5)
-#     new_images = progan(new_latent_vectors)['default']
-
-#     # Convert the generated images back to the [0, 255] range
-#     new_images = tf.clip_by_value(new_images, 0, 1) * 255
-#     new_images = tf.cast(new_images, dtype=tf.uint8).numpy()
-
-#     return new_images
-
 
 def select_and_save_image(images):
   # Display the generated images
@@ -149,42 +94,45 @@ if uploaded_file is not None:
     else:
         input_image = Image.open(uploaded_file).convert("RGB")
         
-        st.image(input_image, caption="Original Image")
-        
-        st.sidebar.info("Please select the enhancements to apply to the original image")
-        
-        #st.sidebar.help("Hover over each enhancement to see a brief description")
+            st.image(input_image, caption="Original Image")
+    
+    st.sidebar.info("Please select the enhancements to apply to the original image")
+    
+    #st.sidebar.help("Hover over each enhancement to see a brief description")
 
-        enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
-        enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
-        adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
-        remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
+    enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
+    enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
+    adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
+    remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
 
-        
-        if enhance_lighting:
-            selected_enhancements.append("improve_lighting")
-        if enhance_symmetry:
-            selected_enhancements.append("enhance_symmetry")
-        if adjust_bg_color:
-            selected_enhancements.append("adjust_background_color")
-        if remove_hairs:
-            selected_enhancements.append("remove_stray_hairs")
+    
+    if enhance_lighting:
+        selected_enhancements.append("improve_lighting")
+    if enhance_symmetry:
+        selected_enhancements.append("enhance_symmetry")
+    if adjust_bg_color:
+        selected_enhancements.append("adjust_background_color")
+    if remove_hairs:
+        selected_enhancements.append("remove_stray_hairs")
 
-        enhanced_images = []
-        if st.button("Generate Enhanced Images"):
-            enhanced_images = generate_images(np.array(input_image), num_images=10, truncation=0.5)
-            for i, img in enumerate(enhanced_images):
-                img = apply_improvements(img, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
-                st.image(img, caption=f"Enhanced Image {i+1}")
+    enhanced_images = []
+    if st.button("Generate Enhanced Images"):
+        for i in range(12):
+            enhanced_image = apply_improvements(np.array(input_image), 
+                                                 apply_lighting=enhance_lighting, 
+                                                 apply_symmetry=enhance_symmetry, 
+                                                 apply_bg_color=adjust_bg_color, 
+                                                 apply_hair_removal=remove_hairs)
+            enhanced_images.append(enhanced_image)
+            # Save the enhanced image to disk
+            Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
+            st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
 
-        image_indices = [i for i in range(len(enhanced_images))]
-        selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in image_indices], default=[])
+    selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
 
-        if st.button("Generate New Images Based on Voting"):
-            if len(selected_indices) > 0:
-                selected_images = [enhanced_images[i] for i in selected_indices]
-                new_images = generate_new_images_based_on_feedback(selected_images)
-                for i, img in enumerate(new_images):
-                    st.image(img, caption=f"New Image {i+1}")
-            else:
-                st.warning("Please upvote at least one image before generating new ones.")
+    if st.button("Generate New Images Based on Voting"):
+        if len(selected_indices) > 0:
+            selected_images = [enhanced_images[i] for i in selected_indices]
+            new_images = generate_new_images_based_on_feedback(selected_images)
+            collage = create_collage()
+            st.image(collage, caption='Enhanced Images Collage')
