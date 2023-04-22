@@ -1,4 +1,4 @@
-numpy
+numpy>=1.21
 opencv-python-headless
 tensorflow==2.5.0
 tensorflow_hub
