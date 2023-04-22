@@ -76,7 +76,8 @@ def remove_stray_hairs(image):
     return result
 
 # Load StyleGAN2 from TensorFlow Hub
-stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq-config-f/1")
+#stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq-config-f/1")
+progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
 
 def generate_images(image, num_images=10, selected_enhancements=None):
     if selected_enhancements is None:
@@ -96,7 +97,7 @@ def generate_images(image, num_images=10, selected_enhancements=None):
         seed = tf.random.normal([1, 512])
 
         # Generate an image using the GAN and the seed
-        gan_output = stylegan2(seed, truncation_psi=0.5)
+        gan_output = progan(seed, truncation_psi=0.5)
 
         # Convert the generated image back to the [0, 255] range
         generated_image = (gan_output + 1) / 2 * 255
