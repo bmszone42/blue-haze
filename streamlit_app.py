@@ -49,60 +49,63 @@ def remove_stray_hairs(image):
     result = cv2.addWeighted(image, 1, cv2.cvtColor(opening, cv2.COLOR_GRAY2BGR), -1, 0)
     return result
 
-# Load StyleGAN2 from TensorFlow Hub
-#stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq-config-f/1")
-#progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
-progan = hub.load('https://tfhub.dev/deepmind/biggan-512/2').signatures['default']
+# Load StyleGAN2-FFHQ from TensorFlow Hub
+stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq/1")
 
-def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
-    generated_images = []
-    if apply_lighting:
-        selected_enhancements.append("improve_lighting")
-    if apply_symmetry:
-        selected_enhancements.append("enhance_symmetry")
-    if apply_bg_color:
-        selected_enhancements.append("adjust_background_color")
-    if apply_hair_removal:
-        selected_enhancements.append("remove_stray_hairs")
+def generate_images(image, num_images=10, truncation=0.5, seed=None):
+    if seed is None:
+        seed = np.random.randint(1000000, size=num_images)
+    else:
+        np.random.seed(seed)
+        seed = np.random.randint(1000000, size=num_images)
+    
+    # Generate images using StyleGAN2-FFHQ
+    latent_vectors = truncation * np.random.randn(num_images, stylegan2.input_shape[1]).astype(np.float32)
+    generated_images = stylegan2(latent_vectors)['default']
 
-    for i in range(num_images):
-        # Generate a random seed for the GAN
-        seed = tf.random.normal([1, 512])
-
-        # Generate an image using the GAN and the seed
-        gan_output = progan(seed)
-
-        # Convert the generated image back to the [0, 255] range
-        generated_image = (gan_output["default"] + 1) / 2 * 255
-
-        # Apply selected enhancements to the generated image
-        generated_image = tf.squeeze(generated_image, axis=0).numpy().astype(np.uint8)
-        if apply_lighting:
-            generated_image = improve_lighting(generated_image)
-        if apply_symmetry:
-            generated_image = enhance_symmetry(generated_image)
-        if apply_bg_color:
-            generated_image = adjust_background_color(generated_image)
-        if apply_hair_removal:
-            generated_image = remove_stray_hairs(generated_image)
-
-        generated_images.append(generated_image)
+    # Convert the generated images back to the [0, 255] range
+    generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
+    generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
 
     return generated_images
 
+def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
+    if apply_lighting:
+        image = improve_lighting(image)
+    if apply_symmetry:
+        image = enhance_symmetry(image)
+    if apply_bg_color:
+        image = adjust_background_color(image)
+    if apply_hair_removal:
+        image = remove_stray_hairs(image)
+    return image
 
-def generate_new_images_based_on_feedback(selected_images):
-    # Calculate the average image from the selected images
-    average_image = np.mean(selected_images, axis=0).astype(np.uint8)
+  def generate_new_images_based_on_feedback(selected_images):
+    # Generate new images using the selected images as input to StyleGAN2-FFHQ
+    num_images = 10
+    latent_vectors = truncation * np.random.randn(num_images, stylegan2.input_shape[1]).astype(np.float32)
+    selected_images = tf.cast(selected_images, dtype=tf.float32) / 255.0
+    generated_images = stylegan2(latent_vectors, selected_images)['default']
 
-    # Generate new images using the average image as a base
-    new_images = generate_images(average_image, num_images=len(selected_images),
-                                  apply_lighting="improve_lighting" in selected_enhancements, 
-                                  apply_symmetry="enhance_symmetry" in selected_enhancements, 
-                                  apply_bg_color="adjust_background_color" in selected_enhancements, 
-                                  apply_hair_removal="remove_stray_hairs" in selected_enhancements)
+    # Convert the generated images back to the [0, 255] range
+    generated_images = tf.clip_by_value(generated_images, 0, 1) * 255
+    generated_images = tf.cast(generated_images, dtype=tf.uint8).numpy()
+    generated_images = [apply_improvements(img, apply_lighting=True, apply_sym
 
-    return new_images
+
+  def select_and_save_image(images):
+    # Display the generated images
+    for i, img in enumerate(images):
+        st.image(img, caption=f"Generated Image {i+1}")
+
+    # Allow the user to select their favorite image
+    selected_index = st.selectbox("Select your favorite image:", range(len(images)))
+
+    # Save the selected image locally as a PNG file
+    selected_image = Image.fromarray(images[selected_index])
+    selected_image.save("favorite_image.png")
+
+    st.success("Image saved successfully!")
 
 # App Interface
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"]) # Set maximum upload size to 10 MB
@@ -139,17 +142,19 @@ if uploaded_file is not None:
 
         enhanced_images = []
         if st.button("Generate Enhanced Images"):
-            enhanced_images = generate_images(np.array(input_image), num_images=10, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
+            enhanced_images = generate_images(np.array(input_image), num_images=10, truncation=0.5)
             for i, img in enumerate(enhanced_images):
+                img = apply_improvements(img, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
                 st.image(img, caption=f"Enhanced Image {i+1}")
 
 
+
         image_indices = [i for i in range(len(enhanced_images))]
-        votes = st.multiselect("Upvote the best images", image_indices)
+        selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in image_indices], default=[])
 
         if st.button("Generate New Images"):
-            if len(votes) > 0:
-                selected_images = [enhanced_images[i] for i in votes]
+            if len(selected_indices) > 0:
+                selected_images = [enhanced_images[i] for i in selected_indices]
                 new_images = generate_new_images_based_on_feedback(selected_images)
                 for i, img in enumerate(new_images):
                     st.image(img, caption=f"New Image {i+1}")
