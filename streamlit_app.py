@@ -65,20 +65,6 @@ def apply_improvements(image, apply_lighting=False, apply_symmetry=False, apply_
         image = remove_stray_hairs(image)
     return image
 
-import streamlit as st
-import cv2
-import numpy as np
-from PIL import Image
-
-
-st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
-                   page_icon=":camera_flash:",
-                   layout="wide")
-st.markdown("<h1 style='text-align: center; color: #b89b7b'>PicPerfector: Ultimate Photo Transformation</h1>", 
-            unsafe_allow_html=True)
-
-selected_enhancements = []
-
 def improve_lighting(image):
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
     l, a, b = cv2.split(lab)
@@ -145,67 +131,6 @@ def select_and_save_image(images):
   selected_image.save("favorite_image.png")
 
   st.success("Image saved successfully!")
-
-def main():
-
-    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"]) # Set maximum upload size to 10 MB
-
-    if uploaded_file is not None:
-        # Set maximum upload size to 10 MB
-        uploaded_file.seek(0)
-        max_size = 10 * 1024 * 1024
-        if len(uploaded_file.getvalue()) > max_size:
-            st.error(f"Please upload an image smaller than {max_size/1024/1024} MB.")
-        else:
-            input_image = Image.open(uploaded_file).convert("RGB")
-
-            st.image(input_image, caption="Original Image")
-
-            st.sidebar.info("Please select the enhancements to apply to the original image")
-
-            enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
-            enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
-            adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
-            remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
-
-
-            if enhance_lighting:
-                selected_enhancements.append("improve_lighting")
-            if enhance_symmetry:
-                selected_enhancements.append("enhance_symmetry")
-            if adjust_bg_color:
-                selected_enhancements.append("adjust_background_color")
-            if remove_hairs:
-                selected_enhancements.append("remove_stray_hairs")
-
-            enhanced_images = []
-            if st.button("Generate Enhanced Images"):
-                for i in range(12):
-                    enhanced_image = apply_improvements(np.array(input_image), 
-                                                         apply_lighting=enhance_lighting, 
-                                                         apply_symmetry=enhance_symmetry, 
-                                                         apply_bg_color=adjust_bg_color, 
-                                                         apply_hair_removal=remove_hairs)
-                    enhanced_images.append(enhanced_image)
-                    # Save the enhanced image to disk
-                    Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
-                    st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
-
-            selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
-
-            if st.button("Generate New Images Based on Voting"):
-                if len(selected_indices) > 0:
-                    selected_images = [enhanced_images[i] for i in selected_indices]
-                    new_images = generate_new_images_based_on_feedback(selected_images)
-                    collage = create_collage(new_images)
-                    st.image(collage, caption='Enhanced Images Collage')
-                else:
-                    st.warning("Please upvote at least one image before generating new images")
-
-
-if __name__ == '__main__':
-    main()
-
 
 def main():
 
