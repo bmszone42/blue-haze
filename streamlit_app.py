@@ -154,7 +154,6 @@ def main():
             adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
             remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
 
-
             if enhance_lighting:
                 selected_enhancements.append("improve_lighting")
             if enhance_symmetry:
@@ -177,19 +176,18 @@ def main():
                     Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
                     st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
 
-            #selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
-            selected_indices = st.multiselect("Upvote the best images", options=[i for i in range(12)], format_func=lambda x: f"Enhanced Image {x+1}", default=[])
+                # Create a collage of the generated images
+                collage = create_collage([Image.fromarray(img) for img in enhanced_images])
+                st.image(collage, caption='Generated Images Collage')
 
-
-            if st.button("Generate New Images Based on Voting"):
-                if len(selected_indices) > 0:
-                    selected_images = [enhanced_images[i] for i in selected_indices]
-                    new_images = generate_new_images_based_on_feedback(selected_images)
-                    collage = create_collage(new_images)
-                    st.image(collage, caption='Enhanced Images Collage')
-                else:
-                    st.warning("Please upvote at least one image before generating new images")
-
+                # Allow the user to select and save individual images
+                for i, img in enumerate(enhanced_images):
+                    if st.button(f"Save Enhanced Image {i+1}"):
+                        file = st.file_uploader(f"Save Enhanced Image {i+1}", type=["png", "jpg", "jpeg"], key=i)
+                        if file is not None:
+                            img = Image.fromarray(img)
+                            img.save(file.name)
+                            st.success("Image saved successfully!")
 
 if __name__ == '__main__':
     main()
