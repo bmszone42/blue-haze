@@ -51,38 +51,26 @@ def remove_stray_hairs(image):
 #stylegan2 = hub.load("https://tfhub.dev/google/stylegan2-ffhq-config-f/1")
 progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
 
-def generate_images(image, num_images=10, selected_enhancements=None):
-    if selected_enhancements is None:
-        selected_enhancements = [] # Set default value for selected_enhancements parameter
-
-    # Prepare the image for GAN input by resizing it to the required shape (1024x1024)
-    resized_image = cv2.resize(image, (1024, 1024))
-
-    # Normalize the image to [-1, 1] range
-    normalized_image = (resized_image - 127.5) / 127.5
-
-    # Expand dimensions for GAN input
-    gan_input = tf.expand_dims(normalized_image, axis=0)
-
+def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
     for i in range(num_images):
         # Generate a random seed for the GAN
         seed = tf.random.normal([1, 512])
 
         # Generate an image using the GAN and the seed
-        gan_output = progan(seed)['default']
+        gan_output = progan(seed)
 
         # Convert the generated image back to the [0, 255] range
         generated_image = (gan_output + 1) / 2 * 255
 
         # Apply selected enhancements to the generated image
         generated_image = tf.squeeze(generated_image, axis=0).numpy().astype(np.uint8)
-        if "improve_lighting" in selected_enhancements:
+        if apply_lighting:
             generated_image = improve_lighting(generated_image)
-        if "enhance_symmetry" in selected_enhancements:
+        if apply_symmetry:
             generated_image = enhance_symmetry(generated_image)
-        if "adjust_background_color" in selected_enhancements:
+        if apply_bg_color:
             generated_image = adjust_background_color(generated_image)
-        if "remove_stray_hairs" in selected_enhancements:
+        if apply_hair_removal:
             generated_image = remove_stray_hairs(generated_image)
 
         generated_images.append(generated_image)
@@ -118,15 +106,16 @@ if uploaded_file is not None:
         #st.sidebar.help("Hover over each enhancement to see a brief description")
 
         enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
-        enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
+        #enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
+        if "enhance_symmetry" in selected_enhancements:
+            generated_image = enhance_symmetry(generated_image)
         adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
         remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
-
 
         selected_enhancements = []
         if enhance_lighting:
             selected_enhancements.append("improve_lighting")
-        if enhance_symmetry:
+        if apply_symmetry:
             selected_enhancements.append("enhance_symmetry")
         if adjust_bg_color:
             selected_enhancements.append("adjust_background_color")
@@ -135,7 +124,8 @@ if uploaded_file is not None:
             
         enhanced_images = []
         if st.button("Generate Enhanced Images"):
-            enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements)
+            #enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements)
+            enhanced_images = generate_images(np.array(input_image), num_images=10, apply_lighting=enhance_lighting, apply_symmetry=apply_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
             for i, img in enumerate(enhanced_images):
                 st.image(img, caption=f"Enhanced Image {i+1}")
 
