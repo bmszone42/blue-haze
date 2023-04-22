@@ -52,6 +52,10 @@ def remove_stray_hairs(image):
 progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
 
 def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
+    
+    if selected_enhancements is None:
+        selected_enhancements = [] # Set default value for selected_enhancements parameter
+    
     for i in range(num_images):
         # Generate a random seed for the GAN
         seed = tf.random.normal([1, 512])
