@@ -130,7 +130,7 @@ if uploaded_file is not None:
 
         enhanced_images = []
         if st.button("Generate Enhanced Images"):
-            enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
+            enhanced_images = generate_images(np.array(input_image), num_images=10, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
             for i, img in enumerate(enhanced_images):
                 st.image(img, caption=f"Enhanced Image {i+1}")
 
