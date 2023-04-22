@@ -177,7 +177,9 @@ def main():
                     Image.fromarray(enhanced_image).save(f'image{i}_enhanced.png')
                     st.image(enhanced_image, caption=f"Enhanced Image {i+1}")
 
-            selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
+            #selected_indices = st.multiselect("Upvote the best images", options=[(i, f"Enhanced Image {i+1}") for i in range(12)], default=[])
+            selected_indices = st.multiselect("Upvote the best images", options=[i for i in range(12)], format_func=lambda x: f"Enhanced Image {x+1}", default=[])
+
 
             if st.button("Generate New Images Based on Voting"):
                 if len(selected_indices) > 0:
