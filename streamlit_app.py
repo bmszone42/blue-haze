@@ -54,9 +54,7 @@ def remove_stray_hairs(image):
 progan = hub.load("https://tfhub.dev/google/progan-128/1").signatures['default']
 
 def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=False, apply_bg_color=False, apply_hair_removal=False):
-
-    selected_enhancements = []
-
+    generated_images = []
     if apply_lighting:
         selected_enhancements.append("improve_lighting")
     if apply_symmetry:
@@ -74,7 +72,7 @@ def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=F
         gan_output = progan(seed)
 
         # Convert the generated image back to the [0, 255] range
-        generated_image = (gan_output + 1) / 2 * 255
+        generated_image = (gan_output["default"] + 1) / 2 * 255
 
         # Apply selected enhancements to the generated image
         generated_image = tf.squeeze(generated_image, axis=0).numpy().astype(np.uint8)
@@ -91,17 +89,21 @@ def generate_images(image, num_images=10, apply_lighting=False, apply_symmetry=F
 
     return generated_images
 
+
 def generate_new_images_based_on_feedback(selected_images):
     # Calculate the average image from the selected images
     average_image = np.mean(selected_images, axis=0).astype(np.uint8)
 
     # Generate new images using the average image as a base
-    new_images = generate_images(average_image, num_images=len(selected_images))
+    new_images = generate_images(average_image, num_images=len(selected_images),
+                                  apply_lighting="improve_lighting" in selected_enhancements, 
+                                  apply_symmetry="enhance_symmetry" in selected_enhancements, 
+                                  apply_bg_color="adjust_background_color" in selected_enhancements, 
+                                  apply_hair_removal="remove_stray_hairs" in selected_enhancements)
 
     return new_images
 
 # App Interface
-
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"]) # Set maximum upload size to 10 MB
 
 if uploaded_file is not None:
@@ -120,9 +122,7 @@ if uploaded_file is not None:
         #st.sidebar.help("Hover over each enhancement to see a brief description")
 
         enhance_lighting = st.sidebar.checkbox("Improve Lighting", help="Enhance brightness and contrast of the image")
-        #enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
-        if "enhance_symmetry" in selected_enhancements:
-            generated_image = enhance_symmetry(generated_image)
+        enhance_symmetry = st.sidebar.checkbox("Enhance Facial Symmetry", help="Improve facial symmetry using reflection")
         adjust_bg_color = st.sidebar.checkbox("Adjust Background Color", help="Change the background color of the image")
         remove_hairs = st.sidebar.checkbox("Remove Stray Hairs", help="Remove unwanted hairs from the image")
 
