@@ -11,40 +11,6 @@ st.set_page_config(page_title="PicPerfector: Ultimate Photo Transformation",
 st.markdown("<h1 style='text-align: center; color: #b89b7b'>PicPerfector: Ultimate Photo Transformation</h1>", 
             unsafe_allow_html=True)
 
-# # Add CSS animation style to Streamlit
-# st.write("""
-#     <style>
-#         .title-animation {
-#             font-size: 2rem;
-#             position: relative;
-#             overflow: hidden;
-#             white-space: nowrap;
-#         }
-        
-#         .title-text {
-#             display: inline-block;
-#             padding: 0 2rem;
-#             animation: slide 5s linear infinite;
-#         }
-        
-#         @keyframes slide {
-#             0% {
-#                 transform: translateX(100%);
-#             }
-#             100% {
-#                 transform: translateX(-100%);
-#             }
-#         }
-#     </style>
-# """, unsafe_allow_html=True)
-
-# # App Interface
-# st.markdown("""
-#     <h1 class="title-animation">
-#         📸 <span class="title-text">PicPerfector: Ultimate Photo Transformation</span> 🖼️
-#     </h1>
-# """, unsafe_allow_html=True)
-
 def improve_lighting(image):
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
     l, a, b = cv2.split(lab)
@@ -165,7 +131,8 @@ if uploaded_file is not None:
             selected_enhancements.append("adjust_background_color")
         if remove_hairs:
             selected_enhancements.append("remove_stray_hairs")
-
+            
+        enhanced_images = []
         if st.button("Generate Enhanced Images"):
             enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements)
             for i, img in enumerate(enhanced_images):
