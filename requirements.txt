@@ -1,3 +1,6 @@
-altair
-pandas
+numpy
+cv2
+tensorflow
+tensorflow_hub
+PIL
 streamlit
