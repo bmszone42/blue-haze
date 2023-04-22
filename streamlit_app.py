@@ -119,19 +119,18 @@ if uploaded_file is not None:
         selected_enhancements = []
         if enhance_lighting:
             selected_enhancements.append("improve_lighting")
-        if apply_symmetry:
+        if enhance_symmetry:
             selected_enhancements.append("enhance_symmetry")
         if adjust_bg_color:
             selected_enhancements.append("adjust_background_color")
         if remove_hairs:
             selected_enhancements.append("remove_stray_hairs")
-            
-        enhanced_images = []
+
         if st.button("Generate Enhanced Images"):
-            #enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements)
-            enhanced_images = generate_images(np.array(input_image), num_images=10, apply_lighting=enhance_lighting, apply_symmetry=apply_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
+            enhanced_images = generate_images(np.array(input_image), num_images=10, selected_enhancements=selected_enhancements, apply_lighting=enhance_lighting, apply_symmetry=enhance_symmetry, apply_bg_color=adjust_bg_color, apply_hair_removal=remove_hairs)
             for i, img in enumerate(enhanced_images):
                 st.image(img, caption=f"Enhanced Image {i+1}")
+
 
         image_indices = [i for i in range(len(enhanced_images))]
         votes = st.multiselect("Upvote the best images", image_indices)
